@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -32,6 +33,54 @@ public class RigidbodyCharControl : MonoBehaviour
 
     private void FixedUpdate()
     {
+        Vector2 cameraRelativeInputDirection = GetCameraRelativeInputDirection();
+
+        UpdatePhysicsMaterial();
+
+        Move(cameraRelativeInputDirection);
+
+        RotateToFaceInputDirection(cameraRelativeInputDirection);
+    }
+
+    /// <summary>
+    /// Turning the character to face the direction it is moving based on player input
+    /// </summary>
+    /// <param name="movementDirection">the direction the character is trying to move.</param>
+    private void RotateToFaceInputDirection(Vector2 movementDirection)
+    {
+        if (movementDirection.magnitude > 0)
+        {
+            var targetRotation = Quaternion.LookRotation(movementDirection);
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, turnSpeed);
+        }
+    }
+
+    /// <summary>
+    /// Moves the player in a direction based on its max speed and acceleration
+    /// </summary>
+    /// <param name="moveDirection">the direction to move in.</param>
+    private void Move(Vector2 moveDirection)
+    {
+        if (rigidbody.velocity.magnitude < maxSpeed)
+        {
+            rigidbody.AddForce(moveDirection * accelerationForce, ForceMode.Acceleration);
+        }
+    }
+
+    /// <summary>
+    /// updates the physics material to a low friction option if the player is moving or a high friction option if they are trying to stop. 
+    /// </summary>
+    private void UpdatePhysicsMaterial()
+    {
+        collider.material = input.magnitude > 0 ? movingPhysicMaterial : stoppingPhysicMaterial;
+    }
+
+    /// <summary>
+    /// Uses input vector to create a camera relative version so the player can move based on the cameras forward position
+    /// </summary>
+    /// <returns>returns the camera relative input direction.</returns>
+    private Vector3 GetCameraRelativeInputDirection()
+    {
         var inputDirection = new Vector3(input.x, 0, input.y);
 
         //below is a vector3
@@ -39,31 +88,16 @@ public class RigidbodyCharControl : MonoBehaviour
         flatCameraForward.y = 0;
         var cameraRotation = Quaternion.LookRotation(flatCameraForward);
 
-        Vector3 cameraRelativeInputDirection = cameraRotation * inputDirection;
-
-        collider.material = inputDirection.magnitude > 0 ? movingPhysicMaterial : stoppingPhysicMaterial;
-
-        if (rigidbody.velocity.magnitude < maxSpeed)
-        {
-            rigidbody.AddForce(cameraRelativeInputDirection * accelerationForce, ForceMode.Acceleration);
-        }
-
-        if (cameraRelativeInputDirection.magnitude > 0)
-        {
-            var targetRotation = Quaternion.LookRotation(cameraRelativeInputDirection);
-            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, turnSpeed);
-        }
-
+        Vector3 cameraRelativeInputDirectionReturn = cameraRotation * inputDirection;
+        return cameraRelativeInputDirectionReturn;
     }
 
+    /// <summary>
+    /// This event handler is called from the player input component using the new input system
+    /// </summary>
+    /// <param name="context">vector 2 representing the move input.</param>
     public void OnMove(InputAction.CallbackContext context)
     {
         input = context.ReadValue<Vector2>();
     }
-
-    //private void Update()
-    //{
-    //    input.x = Input.GetAxisRaw("Horizontal");
-    //    input.y = Input.GetAxisRaw("Vertical");
-    //}
 }
