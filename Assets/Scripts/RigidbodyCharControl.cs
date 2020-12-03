@@ -33,7 +33,7 @@ public class RigidbodyCharControl : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Vector2 cameraRelativeInputDirection = GetCameraRelativeInputDirection();
+        Vector3 cameraRelativeInputDirection = GetCameraRelativeInputDirection();
 
         UpdatePhysicsMaterial();
 
@@ -46,7 +46,7 @@ public class RigidbodyCharControl : MonoBehaviour
     /// Turning the character to face the direction it is moving based on player input
     /// </summary>
     /// <param name="movementDirection">the direction the character is trying to move.</param>
-    private void RotateToFaceInputDirection(Vector2 movementDirection)
+    private void RotateToFaceInputDirection(Vector3 movementDirection)
     {
         if (movementDirection.magnitude > 0)
         {
@@ -59,7 +59,7 @@ public class RigidbodyCharControl : MonoBehaviour
     /// Moves the player in a direction based on its max speed and acceleration
     /// </summary>
     /// <param name="moveDirection">the direction to move in.</param>
-    private void Move(Vector2 moveDirection)
+    private void Move(Vector3 moveDirection)
     {
         if (rigidbody.velocity.magnitude < maxSpeed)
         {
